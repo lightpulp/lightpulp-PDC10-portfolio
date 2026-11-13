@@ -1,17 +1,16 @@
 {
-  "name": "lightpulp-pdc20-portfolio",
-  "type": "module",
-  "version": "0.0.1",
-  "engines": {
-    "node": ">=22.23.4"
-  },
+  "name": "pdc10-portfolio",
+  "version": "1.0.0",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
+  "author": "",
   "dependencies": {
-    "astro": "^7.4.11"
-  }
+    "astro": "^5.14.1"
+  },
+  "type": "module",
+  "private": true
 }
