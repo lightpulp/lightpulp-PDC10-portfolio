@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import Artifact from '../components/Artifact.astro';
+import { PROMPTS } from '../data/prompts';
+import { outcomeById } from '../data/site';
+---
+
+<Base title="Prompt library" description="Ten prompts from the semester, each with the technique it uses and the failure that produced it.">
+  <p class="kicker">Prompt library</p>
+  <h1>Ten prompts, and the failure behind each one</h1>
+  <p class="lede">
+    None of these started in this shape. Each note says what the earlier
+    version did wrong.
+  </p>
+
+  <ol class="plist">
+    {PROMPTS.map((p) => (
+      <li id={p.id}>
+        <p class="plist__tech">{p.technique}</p>
+        <h2>{p.title}</h2>
+        <p class="plist__ctx">{p.context}</p>
+
+        <Artifact label="prompt">{p.text}</Artifact>
+
+        <div class="plist__why">
+          {p.why.split('\n\n').map((para) => <p>{para}</p>)}
+        </div>
+
+        <ul class="tags">
+          {p.outcomes.map((id) => (
+            <li><a class="tag tag--clo" href={`/outcomes#${id}`}>CLO{outcomeById[id].n}</a></li>
+          ))}
+        </ul>
+      </li>
+    ))}
+  </ol>
+</Base>
+
+<style>
+  .plist { list-style: none; padding: 0; margin: 3rem 0 0; max-width: min(100%, 52rem); }
+  .plist li {
+    border-top: 1px solid var(--rule);
+    padding: 2rem 0 2.5rem;
+    margin: 0;
+    scroll-margin-top: 2rem;
+  }
+  .plist__tech {
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    color: var(--verify);
+    margin: 0 0 0.5rem;
+  }
+  .plist h2 { margin: 0 0 0.3rem; font-size: var(--t-lg); }
+  .plist__ctx { font-family: var(--mono); font-size: var(--t-sm); color: var(--ink-3); margin: 0; }
+  .plist__why p { font-size: var(--t-base); color: var(--ink-2); margin: 0 0 0.9rem; }
+  .plist__why { margin-bottom: 1.1rem; }
+</style>

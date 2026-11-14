@@ -1,0 +1,70 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base title="Case studies" description="Six pieces of work from PDC20, each linked to the conversation it came from.">
+  <p class="kicker">Case studies</p>
+  <h1>Six pieces of work</h1>
+  <p class="lede">
+    Two shipped systems, one specification, and three places where I had to
+    check the model instead of reading it.
+  </p>
+
+  <ol class="index">
+    {work.map((w) => (
+      <li>
+        <h2><a href={`/work/${w.id}`}>{w.data.title}</a></h2>
+        <p class="index__sub">{w.data.subtitle}</p>
+        <p class="index__sum">{w.data.summary}</p>
+        <p class="index__finding">{w.data.finding}</p>
+        <ul class="tags">
+          {w.data.outcomes.map((id) => (
+            <li><span class="tag tag--clo">CLO{id.replace('clo', '')}</span></li>
+          ))}
+          {w.data.techniques.map((t) => <li><span class="tag">{t}</span></li>)}
+        </ul>
+      </li>
+    ))}
+  </ol>
+</Base>
+
+<style>
+  .index { list-style: none; padding: 0; margin: 3rem 0 0; counter-reset: cs; max-width: min(100%, 52rem); }
+  .index li {
+    counter-increment: cs;
+    border-top: 1px solid var(--rule);
+    padding: 1.75rem 0 2rem;
+    position: relative;
+    margin: 0;
+  }
+  .index h2 { margin: 0 0 0.3rem; font-size: var(--t-lg); }
+  .index h2 a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .index h2 a:hover { border-bottom-color: var(--flag); }
+  .index__sub { font-family: var(--mono); font-size: var(--t-sm); color: var(--ink-3); margin: 0 0 0.8rem; }
+  .index__sum { margin: 0 0 0.8rem; color: var(--ink-2); font-size: var(--t-base); }
+  .index__finding {
+    margin: 0 0 1rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--flag);
+    font-size: var(--t-base);
+    font-style: italic;
+    color: var(--ink);
+    max-width: 58ch;
+  }
+
+  @media (min-width: 46rem) {
+    .index li { padding-left: 4rem; }
+    .index li::before {
+      content: counter(cs, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 1.95rem;
+      font-family: var(--mono);
+      font-size: var(--t-sm);
+      color: var(--ink-3);
+    }
+  }
+</style>

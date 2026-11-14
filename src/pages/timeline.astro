@@ -1,0 +1,234 @@
+---
+import Base from '../layouts/Base.astro';
+import { ENTRIES, PHASES, byMonth, SOURCE_LABEL } from '../data/timeline';
+import { outcomeById } from '../data/site';
+
+const months = byMonth(ENTRIES);
+const phaseById = Object.fromEntries(PHASES.map((p) => [p.id, p]));
+
+// Work out where each phase starts so the band is drawn once.
+const seen = new Set<string>();
+const firstOfPhase = new Map<string, boolean>();
+for (const m of months) {
+  for (const e of m.items) {
+    const k = `${e.date}|${e.title}`;
+    if (!seen.has(e.phase)) {
+      seen.add(e.phase);
+      firstOfPhase.set(k, true);
+    }
+  }
+}
+---
+
+<Base
+  title="Timeline"
+  description="Every conversation from June to November, in order, with what changed about the way I was prompting."
+>
+  <p class="kicker">June 18 – November 10, 2026</p>
+  <h1>Forty-odd conversations, in the order they happened</h1>
+  <p class="lede">
+    The prompts are the evidence. Read top to bottom and the change is hard to miss.
+  </p>
+
+  <nav class="jump" aria-label="Phases">
+    {PHASES.map((p) => (
+      <a href={`#${p.id}`}>
+        <span class="jump__n">{p.n}</span>
+        <span class="jump__name">{p.name}</span>
+        <span class="jump__range">{p.range}</span>
+      </a>
+    ))}
+  </nav>
+
+  <div class="tl">
+    {months.map((m) => (
+      <section class="month">
+        <h2 class="month__h">{m.label}</h2>
+
+        {m.items.map((e) => {
+          const key = `${e.date}|${e.title}`;
+          const p = phaseById[e.phase];
+          return (
+            <>
+              {firstOfPhase.get(key) && (
+                <div class="band" id={p.id}>
+                  <p class="band__n">Phase {p.n}</p>
+                  <h3>{p.name}</h3>
+                  <p class="band__move">{p.move}</p>
+                  <p class="band__limit">
+                    <span>Still getting wrong</span>
+                    {p.limit}
+                  </p>
+                </div>
+              )}
+
+              <article class={`e${e.mark ? ' e--mark' : ''}`}>
+                <p class="e__date">{e.display}</p>
+                <div class="e__body">
+                  <h4>
+                    {e.url ? <a href={e.url}>{e.title}</a> : e.title}
+                    <span class="e__src">{SOURCE_LABEL[e.source]}</span>
+                  </h4>
+                  <p class="e__asked">{e.asked}</p>
+                  {e.excerpt && <pre class="e__excerpt">{e.excerpt}</pre>}
+                  <p class="e__shows">{e.shows}</p>
+                  {e.outcomes && (
+                    <ul class="tags">
+                      {e.outcomes.map((id) => (
+                        <li>
+                          <a class="tag tag--clo" href={`/outcomes#${id}`}>
+                            CLO{outcomeById[id].n}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </article>
+            </>
+          );
+        })}
+      </section>
+    ))}
+  </div>
+
+  <section class="end">
+    <h2>Where it ends up</h2>
+    <p>
+      The June version of me asked a question and waited to be told what to
+      build. The November version states a contract, lists what not to build,
+      and writes a validator on the assumption the contract will be broken.
+    </p>
+    <p>
+      Six of these threads are written up properly in the
+      <a href="/work">case studies</a>, and the prompts themselves are collected
+      in the <a href="/prompts">prompt library</a>.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .jump {
+    display: grid;
+    gap: 0;
+    margin: 2.5rem 0 4rem;
+    max-width: min(100%, 52rem);
+    border-top: 1px solid var(--rule);
+  }
+  .jump a {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.1rem 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+    text-decoration: none;
+    font-family: var(--mono);
+  }
+  .jump a:hover .jump__name { border-bottom: 1px solid var(--flag); }
+  .jump__n { font-size: var(--t-xs); color: var(--verify); }
+  .jump__name { font-size: var(--t-base); color: var(--ink); justify-self: start; }
+  .jump__range { grid-column: 2; font-size: var(--t-xs); color: var(--ink-3); }
+
+  .tl { max-width: min(100%, 52rem); }
+
+  .month__h {
+    font-size: var(--t-sm);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--ink-3);
+    margin: 3.5rem 0 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .month:first-child .month__h { margin-top: 0; }
+
+  .band {
+    border-left: 2px solid var(--verify);
+    background: var(--verify-bg);
+    padding: 1.1rem 1.25rem;
+    margin: 2rem 0;
+    scroll-margin-top: 1.5rem;
+  }
+  .band__n { font-family: var(--mono); font-size: var(--t-xs); color: var(--verify); margin: 0 0 0.3rem; }
+  .band h3 { margin: 0 0 0.6rem; font-size: var(--t-md); }
+  .band__move { margin: 0 0 0.75rem; font-size: var(--t-base); max-width: 60ch; }
+  .band__limit {
+    margin: 0;
+    font-size: var(--t-base);
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+  .band__limit span {
+    display: block;
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    margin-bottom: 0.15rem;
+  }
+
+  .e {
+    display: grid;
+    gap: 0.35rem 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .e__date {
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    margin: 0;
+    padding-top: 0.3rem;
+  }
+  .e--mark .e__date { color: var(--flag); }
+  .e--mark .e__date::after {
+    content: "turning point";
+    display: block;
+    font-size: 0.625rem;
+    line-height: 1.3;
+    margin-top: 0.2rem;
+  }
+
+  .e__body { min-width: 0; }
+  .e h4 {
+    margin: 0 0 0.45rem;
+    font-size: var(--t-md);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 0.7rem;
+  }
+  .e h4 a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .e h4 a:hover { border-bottom-color: var(--flag); }
+  .e__src {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--ink-3);
+  }
+  .e__asked { margin: 0 0 0.75rem; color: var(--ink-2); font-size: var(--t-base); }
+  .e__excerpt {
+    margin: 0 0 0.85rem;
+    font-size: var(--t-sm);
+    background: var(--field-2);
+    border: 0;
+    border-left: 2px solid var(--rule);
+    padding: 0.7rem 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .e__shows { margin: 0 0 0.75rem; font-size: var(--t-base); }
+  .e--mark .e__shows { border-left: 2px solid var(--flag); padding-left: 0.9rem; }
+
+  @media (min-width: 46rem) {
+    .e { grid-template-columns: 5.5rem minmax(0, 1fr); }
+  }
+
+  .end {
+    margin-top: 4.5rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 1.75rem;
+    max-width: min(100%, 52rem);
+  }
+  .end h2 { margin-top: 0; font-size: var(--t-lg); }
+</style>

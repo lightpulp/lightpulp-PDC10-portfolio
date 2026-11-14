@@ -1,0 +1,104 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { OUTCOMES } from '../data/site';
+import { PROMPTS } from '../data/prompts';
+import { ENTRIES } from '../data/timeline';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base title="Outcomes" description="Each course learning outcome, with the work and prompts that evidence it.">
+  <p class="kicker">Evidence map</p>
+  <h1>Four outcomes, and what backs each one</h1>
+  <p class="lede">
+    Nothing here is claimed without a piece of work attached to it.
+  </p>
+
+  {OUTCOMES.map((o) => {
+    const cases = work.filter((w) => w.data.outcomes.includes(o.id));
+    const prompts = PROMPTS.filter((p) => p.outcomes.includes(o.id));
+    const moments = ENTRIES.filter((e) => e.outcomes?.includes(o.id));
+    return (
+      <section class="clo" id={o.id}>
+        <p class="clo__n">CLO{o.n}</p>
+        <h2>{o.title}</h2>
+        <p class="clo__statement">{o.statement}</p>
+        <p class="clo__claim">{o.claim}</p>
+
+        <h3>Case studies</h3>
+        <ul class="linklist">
+          {cases.map((w) => (
+            <li>
+              <a href={`/work/${w.id}`}>{w.data.title}</a>
+              <span>{w.data.finding}</span>
+            </li>
+          ))}
+        </ul>
+
+        <h3>Moments in the timeline</h3>
+        <ul class="linklist">
+          {moments.map((e) => (
+            <li>
+              <a href={`/timeline#${e.phase}`}>{e.display} &middot; {e.title}</a>
+              <span>{e.shows.split('. ')[0]}.</span>
+            </li>
+          ))}
+        </ul>
+
+        <h3>Prompts</h3>
+        <ul class="linklist">
+          {prompts.map((p) => (
+            <li>
+              <a href={`/prompts#${p.id}`}>{p.title}</a>
+              <span>{p.technique}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  })}
+</Base>
+
+<style>
+  .clo {
+    border-top: 1px solid var(--rule);
+    padding-top: 2rem;
+    margin-top: 4rem;
+    max-width: min(100%, 52rem);
+  }
+  .clo__n {
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    color: var(--verify);
+    margin: 0 0 0.6rem;
+  }
+  .clo h2 { margin: 0 0 1rem; font-size: var(--t-lg); max-width: 28ch; }
+  .clo h3 { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); margin: 2rem 0 0.6rem; letter-spacing: 0; }
+  .clo__statement {
+    font-family: var(--mono);
+    font-size: var(--t-sm);
+    line-height: 1.6;
+    color: var(--ink-2);
+    border-left: 2px solid var(--rule);
+    padding-left: 1rem;
+    margin: 0 0 1.2rem;
+  }
+  .clo__claim { font-size: var(--t-base); margin: 0; }
+
+  .linklist { list-style: none; padding: 0; margin: 0; }
+  .linklist li {
+    display: grid;
+    gap: 0.1rem 1.5rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+    margin: 0;
+  }
+  .linklist a { font-size: var(--t-base); text-decoration: none; border-bottom: 1px solid var(--rule); justify-self: start; }
+  .linklist a:hover { border-bottom-color: var(--flag); }
+  .linklist span { font-family: var(--mono); font-size: var(--t-xs); color: var(--ink-3); line-height: 1.5; }
+
+  @media (min-width: 52rem) {
+    .linklist li { grid-template-columns: 24rem minmax(0, 1fr); align-items: baseline; }
+  }
+</style>

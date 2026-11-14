@@ -1,0 +1,175 @@
+---
+import Base from '../layouts/Base.astro';
+import Artifact from '../components/Artifact.astro';
+---
+
+<Base title="Reflection" description="Five things the semester changed my mind about, and the claims I still cannot make.">
+  <p class="kicker">Reflection</p>
+  <h1>Five things I changed my mind about</h1>
+  <p class="lede">Including the one where I caused the hallucination myself.</p>
+
+  <section class="r">
+    <h2>A prompt is a request. The program is the enforcement.</h2>
+    <p>
+      I started the semester believing that a sufficiently careful prompt
+      produces reliable output. It does not. A prompt shifts a distribution. It
+      makes the good answer much more likely and the bad answer rare, and rare
+      is not the same as impossible.
+    </p>
+    <p>
+      The AiAgri validator is where this became concrete. The prompt says to
+      return one of four actions. The validator intersects whatever came back
+      with the list of four and drops the rest. The prompt asks for a confidence
+      between zero and one. The validator clamps it, because a model will return
+      1.5 and mean nothing by it. If the response will not parse at all, that
+      becomes a warning flagged for a human, not an exception and not a silent
+      skip.
+    </p>
+    <p>
+      Every one of those checks assumes the prompt failed. That is the shift:
+      from writing instructions I hope hold, to designing for the turn where
+      they do not.
+    </p>
+  </section>
+
+  <section class="r">
+    <h2>Less context beat more context, in both projects, for different reasons.</h2>
+    <p>
+      I expected context management to be about fitting inside a window. It
+      turned out to be about attention.
+    </p>
+    <p>
+      On the farm side, batching four sensor nodes into a single prompt was
+      cheaper and measurably worse. A small model asked to hold four sets of
+      readings starts attributing one node's dryness to another. One call per
+      node fixed it. On the chatbot side, loading a customer's full history
+      dragged details from three weeks ago into a question about a bed frame; a
+      ten-message window answered better.
+    </p>
+    <p>
+      In both cases the winning move was to compute a summary rather than paste
+      a log. The farm context is not an hour of readings, it is the latest
+      value, the hour's minimum, average and maximum, the change over that hour,
+      and how long since the node was last heard from. That is a smaller prompt
+      and a better one, and the two facts are related.
+    </p>
+  </section>
+
+  <section class="r">
+    <h2>My first hallucination was my fault.</h2>
+    <p>
+      I wrote an example of the output I wanted. It mentioned rainfall and
+      irrigation water. The database tracks neither. The model produced rainfall
+      figures, because I had shown it rainfall figures and asked it to match.
+    </p>
+    <p>
+      The fix was not a stronger instruction against making things up. That
+      instruction does nothing, because the model is not aware it is making
+      things up. The fix was naming the absent fields:
+    </p>
+    <Artifact label="the fix" tone="verify">Anything not provided (rainfall, water tank level,
+forecast, valve state) is UNKNOWN. Never invent values.
+If an unknown affects your decision, say so in "reason"
+and lower confidence.</Artifact>
+    <p>
+      "Do not hallucinate" is advice. "Rainfall is unknown" is a fact the model
+      can repeat back, and the clause about lowering confidence gives the
+      uncertainty somewhere to go other than into a guess.
+    </p>
+  </section>
+
+  <section class="r">
+    <h2>Fluency and correctness are independent variables.</h2>
+    <p>
+      I knew this as a sentence before the semester. I did not believe it until
+      a perfectly formatted APA reference turned out to be wrong in author
+      order, year and page range at the same time, and nothing in the text gave
+      it away.
+    </p>
+    <p>
+      What I take from that is a sorting rule rather than a general caution.
+      Reasoning I can evaluate by following it. Arbitrary facts — a page range,
+      a version number, a date — I cannot, because there is no chain to check.
+      Those are exactly the places a model is operating on recall rather than
+      inference, and exactly the places it is most confident and least grounded.
+      So: <strong>verify the arbitrary, read the reasoned.</strong>
+    </p>
+  </section>
+
+  <section class="r">
+    <h2>The best conversational design decision I made was about when to stop talking.</h2>
+    <p>
+      The Betis bot sets a <code>bot_paused</code> flag on a complaint and alerts
+      staff. The farm agent recommends and never actuates. The glasses stay
+      silent below 0.8 confidence rather than guessing at a direction.
+    </p>
+    <p>
+      Three different systems, the same shape. In each one the valuable design
+      work was identifying the moment where continuing to be helpful becomes
+      the harm, and building an exit. An angry customer is precisely the case
+      where a fluent, friendly, slightly wrong answer does the most damage, and
+      the correct response is to stop being a chatbot.
+    </p>
+  </section>
+
+  <h2 class="limits-h">Claims I cannot make</h2>
+  <p>
+    The most useful thing in my security report was the table of what I did not
+    fix. Same discipline here.
+  </p>
+  <ul class="limits">
+    <li>
+      <strong>Nothing has run on a real farm.</strong> The AiAgri base station
+      works on simulated sensor data. The LoRa hardware is still in development,
+      and mesh networking and solar power are the untested parts.
+    </li>
+    <li>
+      <strong>The chatbot has not met the public.</strong> It works in Meta's
+      development mode with app testers. App Review is pending, and the
+      thirty-to-fifty-question evaluation set is designed but not yet scored at
+      full size.
+    </li>
+    <li>
+      <strong>I have no bias evaluation worth the name.</strong> The course
+      outcome names bias as a metric. I tested language handling for Tagalog,
+      English and Taglish, which is coverage, not a bias measurement. I would
+      not know how to design a real one for a furniture bot, and I would rather
+      say that than dress up the language testing as something it is not.
+    </li>
+    <li>
+      <strong>My evaluation is qualitative.</strong> Correct, wrong, or
+      should-have-handed-off, scored by me. That catches obvious failure and
+      misses systematic drift, and it does not survive the fact that I wrote
+      both the prompts and the rubric.
+    </li>
+  </ul>
+
+  <h2>Where I want to go next</h2>
+  <p>
+    The gap I feel most is automated evaluation. Everything I checked this
+    semester, I checked by hand, and the honest limit of that is my own
+    attention on the day. A regression suite that replays a fixed question set
+    against the bot after every knowledge base change would have caught things
+    my reading did not, and it is the obvious next build.
+  </p>
+  <p>
+    The second gap is adversarial testing done properly. I tried to break my own
+    bot with discount requests and off-topic questions, which is a start, but I
+    was testing as its author. Someone who wants a free quote out of a furniture
+    shop will try things I did not think of.
+  </p>
+</Base>
+
+<style>
+  .r { margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1.75rem; }
+  .r h2 { margin-top: 0; font-size: var(--t-lg); max-width: 30ch; }
+
+  .limits-h { margin-top: 5rem; }
+  .limits { list-style: none; padding: 0; max-width: min(100%, 52rem); }
+  .limits li {
+    border-left: 2px solid var(--flag);
+    padding: 0.2rem 0 0.2rem 1.1rem;
+    margin-bottom: 1.4rem;
+    max-width: var(--measure);
+  }
+</style>

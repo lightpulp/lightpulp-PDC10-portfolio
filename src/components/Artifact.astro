@@ -1,0 +1,60 @@
+---
+interface Props {
+  label: string;
+  note?: string;
+  tone?: 'neutral' | 'flag' | 'verify';
+}
+const { label, note, tone = 'neutral' } = Astro.props;
+---
+
+<figure class={`artifact artifact--${tone}`}>
+  <figcaption class="artifact__label">
+    <span>{label}</span>
+    {note && <span class="artifact__note">{note}</span>}
+  </figcaption>
+  <div class="artifact__body"><slot /></div>
+</figure>
+
+<style>
+  .artifact {
+    margin: 2rem 0;
+    max-width: min(100%, 52rem);
+    border: 1px solid var(--rule);
+    background: var(--field-2);
+  }
+  .artifact--flag { border-left: 3px solid var(--flag); }
+  .artifact--verify { border-left: 3px solid var(--verify); }
+
+  .artifact__label {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--ink-3);
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .artifact__note { color: var(--ink-2); }
+  .artifact--flag .artifact__note { color: var(--flag); }
+  .artifact--verify .artifact__note { color: var(--verify); }
+
+  .artifact__body {
+    font-family: var(--mono);
+    font-size: var(--t-sm);
+    line-height: 1.65;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .artifact__body :global(pre) {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    background: none !important;
+  }
+  .artifact__body :global(p) { margin: 0 0 0.8rem; max-width: none; }
+  .artifact__body :global(p:last-child) { margin-bottom: 0; }
+</style>

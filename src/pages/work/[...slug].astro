@@ -1,0 +1,140 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { outcomeById } from '../../data/site';
+
+export async function getStaticPaths() {
+  const work = await getCollection('work');
+  return work.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+
+const all = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const i = all.findIndex((w) => w.id === entry.id);
+const next = all[(i + 1) % all.length];
+
+const facts: [string, string][] = [
+  ['Role', d.role],
+  ['Status', d.status],
+  ['Stack', d.stack.join(', ')],
+  ['Techniques', d.techniques.join(', ')],
+];
+---
+
+<Base title={d.title} description={d.summary}>
+  <p class="kicker">
+    Case study {String(d.order).padStart(2, '0')} / {d.subtitle}
+  </p>
+
+  <h1>{d.title}</h1>
+
+  <p class="finding">{d.finding}</p>
+
+  <dl class="facts">
+    {facts.map(([k, v]) => (
+      <div>
+        <dt>{k}</dt>
+        <dd>{v}</dd>
+      </div>
+    ))}
+    <div>
+      <dt>Outcomes</dt>
+      <dd class="facts__clo">
+        {d.outcomes.map((id) => (
+          <a class="tag tag--clo" href={`/outcomes#${id}`}>
+            CLO{outcomeById[id].n} {outcomeById[id].short}
+          </a>
+        ))}
+      </dd>
+    </div>
+  </dl>
+
+  <article class="prose">
+    <Content />
+  </article>
+
+  <section class="sources">
+    <h2>Where this came from</h2>
+    <ul>
+      {d.sources.map((s) => (
+        <li><a href={s.url}>{s.title}</a></li>
+      ))}
+    </ul>
+  </section>
+
+  <nav class="next" aria-label="Next case study">
+    <p>Next</p>
+    <a href={`/work/${next.id}`}>{next.data.title}</a>
+  </nav>
+</Base>
+
+<style>
+  h1 { max-width: 22ch; }
+
+  .finding {
+    font-size: var(--t-lg);
+    line-height: 1.4;
+    font-style: italic;
+    color: var(--ink);
+    border-left: 2px solid var(--flag);
+    padding-left: 1.1rem;
+    margin: 0 0 2.5rem;
+    max-width: 44ch;
+  }
+
+  .facts {
+    margin: 0 0 3.5rem;
+    max-width: min(100%, 52rem);
+    border-top: 1px solid var(--rule);
+  }
+  .facts div {
+    display: grid;
+    gap: 0.1rem 1.5rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .facts dt {
+    font-family: var(--mono);
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+  }
+  .facts dd {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: var(--t-sm);
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .facts__clo { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+  @media (min-width: 46rem) {
+    .facts div { grid-template-columns: 8rem minmax(0, 1fr); align-items: baseline; }
+  }
+
+  .prose :global(h2) { max-width: 26ch; }
+  .prose :global(h2:first-child) { margin-top: 0; }
+
+  .sources {
+    margin-top: 4rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 1.5rem;
+    max-width: min(100%, 52rem);
+  }
+  .sources h2 { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); margin: 0 0 0.75rem; letter-spacing: 0; }
+  .sources ul { list-style: none; padding: 0; margin: 0; }
+  .sources li { margin-bottom: 0.4rem; }
+  .sources a { font-family: var(--mono); font-size: var(--t-sm); }
+
+  .next {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule-soft);
+    max-width: min(100%, 52rem);
+  }
+  .next p { font-family: var(--mono); font-size: var(--t-xs); color: var(--ink-3); margin: 0 0 0.3rem; }
+  .next a { font-family: var(--mono); font-size: var(--t-md); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .next a:hover { border-bottom-color: var(--flag); }
+</style>

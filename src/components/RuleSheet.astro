@@ -1,0 +1,78 @@
+---
+interface Rule { text: string; blocks: string }
+interface Props { label: string; rules: Rule[] }
+const { label, rules } = Astro.props;
+---
+
+<div class="sheet">
+  <p class="sheet__label">{label}</p>
+  <ol class="sheet__list">
+    {rules.map((r) => (
+      <li>
+        <span class="sheet__rule">{r.text}</span>
+        <span class="sheet__blocks">{r.blocks}</span>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .sheet {
+    border: 1px solid var(--rule);
+    background: var(--field-2);
+    max-width: min(100%, 54rem);
+  }
+  .sheet__label {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    color: var(--ink-3);
+    margin: 0;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .sheet__list {
+    list-style: none;
+    margin: 0;
+    padding: 0.4rem 0;
+    counter-reset: rule;
+    max-width: none;
+  }
+  .sheet__list li {
+    counter-increment: rule;
+    display: grid;
+    gap: 0.15rem 1.25rem;
+    padding: 0.7rem 1rem 0.7rem 2.9rem;
+    position: relative;
+    margin: 0;
+  }
+  .sheet__list li::before {
+    content: counter(rule);
+    position: absolute;
+    left: 1rem;
+    top: 0.72rem;
+    font-family: var(--mono);
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+  }
+  .sheet__rule {
+    font-family: var(--mono);
+    font-size: var(--t-sm);
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .sheet__blocks {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: var(--flag);
+  }
+  .sheet__blocks::before { content: "blocks "; color: var(--ink-3); }
+
+  @media (min-width: 52rem) {
+    .sheet__list li {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+      align-items: baseline;
+    }
+    .sheet__blocks { text-align: right; }
+  }
+</style>
